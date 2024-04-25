@@ -5,7 +5,7 @@ A tool for upscaling Minecraft textures, making them "less edgy" in the process.
 This project has been a learning project for writing rust, so structure / organisation / etc. may not be perfect.  
 
 ### Goals / Planned Features:
-* [ ] CLI Argument support for pointing to directories, setting the size to upscale to
+* [x] CLI Argument support for pointing to directories, setting the size to upscale to
 * [ ] Generate textures similar to the original
 * [ ] Modify code to be async / multi-threaded, to process several textures at once (*stretch goal*)
 
