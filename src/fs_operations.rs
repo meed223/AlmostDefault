@@ -19,20 +19,15 @@ pub fn read_source_files(root_path: &PathBuf) -> Result<Vec<PathBuf>, &'static s
 }
 
 pub fn create_output_directory_structure(write_root: &PathBuf, resources: &Vec<PathBuf>) -> Result<(), &'static str> {
-    let mut written_paths:Vec<&Path> = Vec::new();
-
     for r in resources {
         // ToDo: Try and join these two conditions into a single 'if'
         if let Some(parent_rel_path) = r.parent() {
-            if written_paths.contains(&parent_rel_path) {
-                let absolute_output_sub_dir = &write_root.join(parent_rel_path);
-
+            let absolute_output_sub_dir = &write_root.join(parent_rel_path);
+            if !absolute_output_sub_dir.exists() {
                 match fs::create_dir(absolute_output_sub_dir) {
                     Ok(d) => d,
                     Err(_e) => return Err("Error: Unable to create directory in output structure.")
                 }
-
-                written_paths.push(parent_rel_path);
             }
         }
     }
