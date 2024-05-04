@@ -5,6 +5,7 @@ use resource_operations::{copy_resource, determine_resource_type, process_block_
 
 pub mod fs_operations;
 pub mod resource_operations;
+pub mod image_manipulation;
 
 #[derive(Parser)]
 #[command(about = "Upscales resource-pack textures, making them less edgy.", long_about = None)]
@@ -62,8 +63,8 @@ fn main() -> ExitCode {
     for r in mapped_resources {
         let result = match r.1 {
             ResourceType::NonImage => copy_resource(&read_root_path, &write_root_path, r.0),
-            ResourceType::Block => process_block_resource(r.0, &upscaling_parameters),
-            ResourceType::Item => process_item_resource(r.0, &upscaling_parameters)
+            ResourceType::Block => process_block_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters),
+            ResourceType::Item => process_item_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters)
         };
 
         match result {
