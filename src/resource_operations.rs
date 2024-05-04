@@ -102,9 +102,32 @@ pub(crate) fn process_block_resource(resource: PathBuf, read_root: &PathBuf, wri
 }
 
 pub(crate) fn process_item_resource(resource: PathBuf, read_root: &PathBuf, write_root: &PathBuf, upscaling_parameters: &UpscalingParameters) -> Result<(), &'static str> {
-    let source_img = match image::open(read_root.join(resource)) {
+    let source_img = match image::open(read_root.join(&resource)) {
         Ok(i) => RgbaImage::from(i),
         Err(_e) => return Err("Error: Unable to read image into buffer. (item)")
+    };
+
+    let mut upscaled_img = match median_upscale(&source_img, &upscaling_parameters) {
+        Ok(i) => i,
+        Err(e) => return Err(e)
+    };
+
+    upscaled_img = match circular_filter(&source_img, upscaled_img, upscaling_parameters) {
+        Ok(i) => i,
+        Err(e) => return Err(e)
+    };
+
+    let file = write_root.join(&resource);
+    match File::create(&file) {
+        Ok(f) => f,
+        Err(_e) => {
+            return Err("Error: Failed to create image file.")
+        }
+    };
+
+    match upscaled_img.save(&file) {
+        Ok(x) => x,
+        Err(_e) => return Err("Error: Failed to write image contents to file.")
     };
 
     return Ok(());
