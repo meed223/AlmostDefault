@@ -22,7 +22,7 @@ pub(crate) fn determine_resource_type(resources: &Vec<PathBuf>) -> Result<HashMa
         };
         path_as_string = r.to_string_lossy();
 
-        if filename != "png" || path_as_string.contains("colormap/") {
+        if filename != "png" || path_as_string.contains("colormap") {
             type_map.insert(r.to_owned(), ResourceType::NonImage);
         } else {
             if path_as_string.contains("items/") {
