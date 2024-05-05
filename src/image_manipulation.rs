@@ -1,4 +1,4 @@
-use image::{GenericImageView, ImageBuffer, Pixel, Rgba, RgbaImage};
+use image::{ImageBuffer, Pixel, Rgba, RgbaImage};
 
 use crate::UpscalingParameters;
 
@@ -39,7 +39,6 @@ pub(crate) fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_par
             // Inner loop to get 3x3 pixels around target pixel
             for i in -wb..=wb {
                 for j in -wb..=wb {
-                    // TODO: Need to add the bitwise add?
                     colours.push(upscaled_img.get_pixel((x + i) as u32, (y + j) as u32));
                 }
             }
@@ -79,7 +78,6 @@ pub(crate) fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_par
 pub(crate) fn circular_filter(source_img: &ImageBuffer<Rgba<u8>, Vec<u8>>, mut upscaled_img: ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_parameters: &UpscalingParameters) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, &'static str> {
     for y in 0..upscaled_img.height() {
         for x in 0..upscaled_img.width() {
-            // TODO: Try changing to Option<T> ?
             let result = match compare_ssse(upscaling_parameters.scale, y as i32 % upscaling_parameters.scale, x as i32 % upscaling_parameters.scale) {
                 Some(b) => b,
                 None => return Err("Error: Unable to perform circular comparison.")
@@ -93,6 +91,7 @@ pub(crate) fn circular_filter(source_img: &ImageBuffer<Rgba<u8>, Vec<u8>>, mut u
 }
 
 // TODO: Refactor Rename
+// TODO: Try changing to Option<T> ?
 pub fn compare_ssse(scale: i32, y_percent_scale: i32, x_percent_scale: i32) -> Option<bool>{
     if scale == 2 {
         return Some(true);
