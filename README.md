@@ -5,13 +5,17 @@ A tool for upscaling Minecraft textures, making them "less edgy" in the process.
 This project has been a learning project for writing rust, so structure / organisation / etc. may not be perfect.  
 
 ### ToDo:
-* [ ] Try and clear up any warnings
+* [ ] Try and clear up any build-warnings
+* [ ] Update fs & resource-code so it can be pointed at a root Minecraft directory (from an unpacked version jar)
+  * [ ] Do Simple-copy colormap folder
+  * [ ] Ignore / Simple-Copy background folder (gui > title > background)
 * [ ] Try and resolve any to-dos
 * [ ] Push initial version to master branch
 
 ### Goals / Planned Features:
 * [x] CLI Argument support for pointing to directories, setting the size to upscale to
-* [ ] Generate textures similar to the original
+* [x] Generate textures similar to the original
+* [ ] Extend to produce a usable pack - i.e. generate the expected pack structure, pack-info files, etc.
 * [ ] Modify code to be async / multi-threaded, to process several textures at once (*stretch goal*)
 
 ## Acknowledgements
