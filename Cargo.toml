@@ -7,3 +7,4 @@ edition = "2021"
 walkdir = "2"
 image = "0"
 clap = { version = "4", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
