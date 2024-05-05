@@ -11,16 +11,22 @@ pub(crate) enum ResourceType {
 
 pub(crate) fn determine_resource_type(resources: &Vec<PathBuf>) -> Result<HashMap<PathBuf, ResourceType>, &'static str> {
     let mut type_map = HashMap::new();
+    let mut filename;
 
     for r in resources {
-        if !r.ends_with(".png") {
-            type_map.insert(r.to_owned(), ResourceType::NonImage);
+        filename = match r.extension() {
+            Some(f) => f,
+            None => return Err("Unable to resolve file extension.")
         };
 
-        if r.to_string_lossy().contains("items/") {
-            type_map.insert(r.to_owned(), ResourceType::Item);
+        if filename != "png" {
+            type_map.insert(r.to_owned(), ResourceType::NonImage);
         } else {
-            type_map.insert(r.to_owned(), ResourceType::Block);
+            if r.to_string_lossy().contains("items/") {
+                type_map.insert(r.to_owned(), ResourceType::Item);
+            } else {
+                type_map.insert(r.to_owned(), ResourceType::Block);
+            }
         }
     }
 
