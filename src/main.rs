@@ -17,10 +17,7 @@ struct Args {
     output: String,
 
     #[arg(short = 'x', long = "scale", default_value_t = 4)]
-    scale: i32,
-
-    #[arg(short = 'l', long = "links", default_value_t = false)]
-    follow_links: bool
+    scale: i32
 }
 
 fn main() -> ExitCode {
