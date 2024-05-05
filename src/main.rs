@@ -10,9 +10,6 @@ pub mod image_manipulation;
 #[derive(Parser)]
 #[command(about = "Upscales resource-pack textures, making them less edgy.", long_about = None)]
 struct Args {
-    #[arg(short = 't', long = "threads")]
-    threads: i32,
-
     #[arg(short = 'i', long = "input")]
     input: String,
 
@@ -37,7 +34,7 @@ async fn main() -> ExitCode {
     };
 
     let write_root_path = PathBuf::from(args.output);
-    match create_output_directory_structure(&write_root_path, &resources) {
+    match create_output_directory_structure(&write_root_path, &resources).await {
         Ok(()) => (),
         Err(msg) => {
             println!("{0}", msg);
@@ -61,24 +58,50 @@ async fn main() -> ExitCode {
         }
     };
 
-    let total_resources = mapped_resources.capacity() as i32;
-    let mut resource_processed_count = 1;
+    let mut copy_tasks = Vec::new();
+    let mut block_tasks = Vec::new();
+    let mut item_tasks = Vec::new();
 
     for r in mapped_resources {
-        let result = match r.1 {
-            ResourceType::NonImage => copy_resource(&read_root_path, &write_root_path, r.0).await,
-            ResourceType::Block => process_block_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters).await,
-            ResourceType::Item => process_item_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters).await
+       match r.1 {
+            ResourceType::NonImage => {
+                copy_tasks.push(copy_resource(&read_root_path, &write_root_path, r.0))
+            },
+            ResourceType::Block => {
+                block_tasks.push(process_block_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters))
+            },
+            ResourceType::Item => {
+                item_tasks.push(process_item_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters))
+            }
         };
+    }
 
-        print!("\rProcessed {0} of {1} resources", resource_processed_count, total_resources);
-        resource_processed_count += 1;
-
-        match result {
+    for c in copy_tasks {
+        match c.await {
             Ok(()) => (),
             Err(msg) => {
                 println!("{0}", msg);
-                return ExitCode::FAILURE
+                //return ExitCode::FAILURE
+            }
+        }
+    }
+
+    for b in block_tasks {
+        match b.await {
+            Ok(()) => (),
+            Err(msg) => {
+                println!("{0}", msg);
+                //return ExitCode::FAILURE
+            }
+        }
+    }
+
+    for i in item_tasks {
+        match i.await {
+            Ok(()) => (),
+            Err(msg) => {
+                println!("{0}", msg);
+                //return ExitCode::FAILURE
             }
         }
     }
