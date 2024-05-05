@@ -1,4 +1,5 @@
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
+use tokio::fs;
 use walkdir::WalkDir;
 
 pub fn read_source_files(root_path: &PathBuf) -> Result<Vec<PathBuf>, &'static str> {
@@ -28,15 +29,18 @@ pub fn read_source_files(root_path: &PathBuf) -> Result<Vec<PathBuf>, &'static s
     return Ok(resource_rel_paths);
 }
 
-pub fn create_output_directory_structure(write_root: &PathBuf, resources: &Vec<PathBuf>) -> Result<(), &'static str> {
+pub async fn create_output_directory_structure(write_root: &PathBuf, resources: &Vec<PathBuf>) -> Result<(), &'static str> {
     for r in resources {
         // ToDo: Try and join these two conditions into a single 'if'
         if let Some(parent_rel_path) = r.parent() {
             let absolute_output_sub_dir = &write_root.join(parent_rel_path);
             if !absolute_output_sub_dir.exists() {
-                match fs::create_dir(absolute_output_sub_dir) {
+                match fs::create_dir_all(absolute_output_sub_dir).await {
                     Ok(d) => d,
-                    Err(_e) => return Err("Error: Unable to create directory in output structure.")
+                    Err(e) => {
+                        println!("{e}");
+                        return Err("Error: Unable to create directory in output structure.")
+                    }
                 }
             }
         }
