@@ -2,7 +2,7 @@ use image::{ImageBuffer, Pixel, Rgba, RgbaImage};
 
 use crate::UpscalingParameters;
 
-pub(crate) fn pixel_doubling_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, scale: u32) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
+pub(crate) async fn pixel_doubling_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, scale: u32) -> ImageBuffer<Rgba<u8>, Vec<u8>> {
     let mut upscaled_img: image::ImageBuffer<Rgba<u8>, Vec<u8>> = RgbaImage::new(img.width() * scale, img.height() * scale);
 
     let mut y_offset = 0;
@@ -26,8 +26,8 @@ pub(crate) fn pixel_doubling_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, scale
     return upscaled_img;
 }
 
-pub(crate) fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_parameters: &UpscalingParameters) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, &'static str> {
-    let upscaled_img = pixel_doubling_upscale(img, upscaling_parameters.scale as u32);
+pub(crate) async fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_parameters: &UpscalingParameters) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, &'static str> {
+    let upscaled_img = pixel_doubling_upscale(img, upscaling_parameters.scale as u32).await;
     let mut filtered_upscaled_img = upscaled_img.clone();
     let wb = (upscaling_parameters.median -1) / 2;
 
@@ -42,7 +42,7 @@ pub(crate) fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_par
                     colours.push(upscaled_img.get_pixel((x + i) as u32, (y + j) as u32));
                 }
             }
-            let mean_colour = get_mean_colour(colours);
+            let mean_colour = get_mean_colour(colours).await;
             filtered_upscaled_img.put_pixel(x as u32, y as u32, mean_colour);
         }
     }
@@ -50,7 +50,7 @@ pub(crate) fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_par
     return Ok(filtered_upscaled_img);
  }
 
- pub(crate) fn get_mean_colour(colours: Vec<&Rgba<u8>>) -> Rgba<u8> {
+ pub(crate) async fn get_mean_colour(colours: Vec<&Rgba<u8>>) -> Rgba<u8> {
     let mut r = Vec::new();
     let mut g = Vec::new();
     let mut b = Vec::new();
@@ -75,10 +75,10 @@ pub(crate) fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_par
     return Rgba::from(mean_channels);
 }
 
-pub(crate) fn circular_filter(source_img: &ImageBuffer<Rgba<u8>, Vec<u8>>, mut upscaled_img: ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_parameters: &UpscalingParameters) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, &'static str> {
+pub(crate) async fn circular_filter(source_img: &ImageBuffer<Rgba<u8>, Vec<u8>>, mut upscaled_img: ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_parameters: &UpscalingParameters) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, &'static str> {
     for y in 0..upscaled_img.height() {
         for x in 0..upscaled_img.width() {
-            let result = match compare_ssse(upscaling_parameters.scale, y as i32 % upscaling_parameters.scale, x as i32 % upscaling_parameters.scale) {
+            let result = match compare_ssse(upscaling_parameters.scale, y as i32 % upscaling_parameters.scale, x as i32 % upscaling_parameters.scale).await {
                 Some(b) => b,
                 None => return Err("Error: Unable to perform circular comparison.")
             };
@@ -92,7 +92,7 @@ pub(crate) fn circular_filter(source_img: &ImageBuffer<Rgba<u8>, Vec<u8>>, mut u
 
 // TODO: Refactor Rename
 // TODO: Try changing to Option<T> ?
-pub fn compare_ssse(scale: i32, y_percent_scale: i32, x_percent_scale: i32) -> Option<bool>{
+pub async fn compare_ssse(scale: i32, y_percent_scale: i32, x_percent_scale: i32) -> Option<bool>{
     if scale == 2 {
         return Some(true);
     } else if scale == 4 && y_percent_scale <= 4 && x_percent_scale <= 4 {
