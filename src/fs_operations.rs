@@ -3,6 +3,7 @@ use walkdir::WalkDir;
 
 pub fn read_source_files(root_path: &PathBuf) -> Result<Vec<PathBuf>, &'static str> {
     let mut resource_rel_paths: Vec<PathBuf> = Vec::new();
+    let mut path_as_string;
 
     for entry in WalkDir::new(&root_path)
     .follow_links(false)
@@ -10,7 +11,16 @@ pub fn read_source_files(root_path: &PathBuf) -> Result<Vec<PathBuf>, &'static s
     .filter_map(Result::ok)
     .filter(|e| !e.file_type().is_dir()) {
         match entry.path().strip_prefix(&root_path) {
-            Ok(path) => resource_rel_paths.push(path.to_owned()),
+            Ok(path) => {
+                path_as_string = path.to_string_lossy();
+                // These paths contain files that don't need to be copied or upscaled
+                if path_as_string.contains("realms") 
+                || path_as_string.contains("title") 
+                || path_as_string.contains("presets") {
+                    continue;
+                }
+                resource_rel_paths.push(path.to_owned())
+            },
             Err(_e) => return Err("Error: Unable to form relative-path for resource.")
         }
     }
