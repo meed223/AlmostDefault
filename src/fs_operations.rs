@@ -1,4 +1,4 @@
-use std::{fs, path::{Path, PathBuf}};
+use std::{fs, path::PathBuf};
 use walkdir::WalkDir;
 
 pub fn read_source_files(root_path: &PathBuf) -> Result<Vec<PathBuf>, &'static str> {
