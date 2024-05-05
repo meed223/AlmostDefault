@@ -10,9 +10,12 @@ pub mod image_manipulation;
 #[derive(Parser)]
 #[command(about = "Upscales resource-pack textures, making them less edgy.", long_about = None)]
 struct Args {
+    #[arg(short = 't', long = "threads")]
+    threads: i32,
+
     #[arg(short = 'i', long = "input")]
     input: String,
-    
+
     #[arg(short = 'o', long = "output",)]
     output: String,
 
@@ -20,7 +23,8 @@ struct Args {
     scale: i32
 }
 
-fn main() -> ExitCode {
+#[tokio::main]
+async fn main() -> ExitCode {
     let args: Args = Args::parse();
 
     let read_root_path = PathBuf::from(args.input);
@@ -62,9 +66,9 @@ fn main() -> ExitCode {
 
     for r in mapped_resources {
         let result = match r.1 {
-            ResourceType::NonImage => copy_resource(&read_root_path, &write_root_path, r.0),
-            ResourceType::Block => process_block_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters),
-            ResourceType::Item => process_item_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters)
+            ResourceType::NonImage => copy_resource(&read_root_path, &write_root_path, r.0).await,
+            ResourceType::Block => process_block_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters).await,
+            ResourceType::Item => process_item_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters).await
         };
 
         print!("\rProcessed {0} of {1} resources", resource_processed_count, total_resources);
