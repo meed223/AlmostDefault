@@ -16,7 +16,7 @@ struct Args {
     #[arg(short = 'o', long = "output",)]
     output: String,
 
-    #[arg(short = 'x', long = "scale", default_value_t = 64)]
+    #[arg(short = 'x', long = "scale", default_value_t = 4)]
     scale: i32,
 
     #[arg(short = 'l', long = "links", default_value_t = false)]
@@ -60,12 +60,18 @@ fn main() -> ExitCode {
         }
     };
 
+    let total_resources = mapped_resources.capacity() as i32;
+    let mut resource_processed_count = 1;
+
     for r in mapped_resources {
         let result = match r.1 {
             ResourceType::NonImage => copy_resource(&read_root_path, &write_root_path, r.0),
             ResourceType::Block => process_block_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters),
             ResourceType::Item => process_item_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters)
         };
+
+        print!("\rProcessed {0} of {1} resources", resource_processed_count, total_resources);
+        resource_processed_count += 1;
 
         match result {
             Ok(()) => (),
@@ -75,16 +81,16 @@ fn main() -> ExitCode {
             }
         }
     }
-
+    println!("All resources processed!");
     ExitCode::SUCCESS
 }
 
 fn get_upscaling_parameters(scale: i32) -> Result<UpscalingParameters, &'static str> {
     match scale {
-        64 => return Ok(UpscalingParameters { scale: 4, median: 3}),
-        128 => return Ok(UpscalingParameters { scale: 8, median: 5}),
-        256 => return Ok(UpscalingParameters { scale: 16, median: 9}),
-        _ => return Err("Error: Unsupported scale. Please choose 64, 128 or 256.")
+        4 => return Ok(UpscalingParameters { scale: 4, median: 3}),
+        8 => return Ok(UpscalingParameters { scale: 8, median: 5}),
+        16 => return Ok(UpscalingParameters { scale: 16, median: 9}),
+        _ => return Err("Error: Unsupported scale. Please choose 4, 8 or 16.")
     }
 }
 
