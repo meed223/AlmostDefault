@@ -1,5 +1,6 @@
-use std::{collections::HashMap, fs::{self, File}, path::PathBuf};
+use std::{collections::HashMap, path::PathBuf};
 use image::{ImageBuffer, Rgba, RgbaImage};
+use tokio::fs::{self, File};
 
 use crate::{image_manipulation::{circular_filter, get_mean_colour, median_upscale}, UpscalingParameters};
 
@@ -21,7 +22,7 @@ pub(crate) fn determine_resource_type(resources: &Vec<PathBuf>) -> Result<HashMa
         };
         path_as_string = r.to_string_lossy();
 
-        if filename != "png" || path_as_string.contains("colormap/") {
+        if filename != "png" || path_as_string.contains("colormap") {
             type_map.insert(r.to_owned(), ResourceType::NonImage);
         } else {
             if path_as_string.contains("items/") {
@@ -35,14 +36,14 @@ pub(crate) fn determine_resource_type(resources: &Vec<PathBuf>) -> Result<HashMa
     return Ok(type_map);
 }
 
-pub(crate) fn copy_resource(read_root: &PathBuf, write_root: &PathBuf, resource: PathBuf) -> Result<(), &'static str> {
-    match fs::copy(read_root.join(&resource), write_root.join(resource)) {
+pub(crate) async fn copy_resource(read_root: &PathBuf, write_root: &PathBuf, resource: PathBuf) -> Result<(), &'static str> {
+    match fs::copy(read_root.join(&resource), write_root.join(resource)).await {
         Ok(_u) => return Ok(()),
         Err(_e) => return Err("Error: Unable to copy resource.")
     };
 }
 
-pub(crate) fn process_block_resource(resource: PathBuf, read_root: &PathBuf, write_root: &PathBuf, upscaling_parameters: &UpscalingParameters) -> Result<(), &'static str> {
+pub(crate) async fn process_block_resource(resource: PathBuf, read_root: &PathBuf, write_root: &PathBuf, upscaling_parameters: &UpscalingParameters) -> Result<(), &'static str> {
     let source_img = match image::open(read_root.join(&resource)) {
         Ok(i) => RgbaImage::from(i),
         Err(_e) => return Err("Error: Unable to read image into buffer. (block)")
@@ -63,7 +64,7 @@ pub(crate) fn process_block_resource(resource: PathBuf, read_root: &PathBuf, wri
         }
     }
 
-    let mean_colour: Rgba<u8> = get_mean_colour(corner_colours);
+    let mean_colour: Rgba<u8> = get_mean_colour(corner_colours).await;
 
     for y in 0..intermediate_img.height() {
         intermediate_img.put_pixel(0, y, mean_colour);
@@ -75,12 +76,12 @@ pub(crate) fn process_block_resource(resource: PathBuf, read_root: &PathBuf, wri
         intermediate_img.put_pixel(x, intermediate_img.height() - 1, mean_colour);
     }
 
-    let mut upscaled_img = match median_upscale(&intermediate_img, &upscaling_parameters) {
+    let mut upscaled_img = match median_upscale(&intermediate_img, &upscaling_parameters).await {
         Ok(i) => i,
         Err(e) => return Err(e)
     };
 
-    upscaled_img = match circular_filter(&intermediate_img, upscaled_img, upscaling_parameters) {
+    upscaled_img = match circular_filter(&intermediate_img, upscaled_img, upscaling_parameters).await {
         Ok(i) => i,
         Err(e) => return Err(e)
     };
@@ -94,7 +95,7 @@ pub(crate) fn process_block_resource(resource: PathBuf, read_root: &PathBuf, wri
     }
 
     let file = write_root.join(&resource);
-    match File::create(&file) {
+    match File::create(&file).await {
         Ok(f) => f,
         Err(_e) => {
             return Err("Error: Failed to create image file.")
@@ -109,24 +110,24 @@ pub(crate) fn process_block_resource(resource: PathBuf, read_root: &PathBuf, wri
     return Ok(());
 }
 
-pub(crate) fn process_item_resource(resource: PathBuf, read_root: &PathBuf, write_root: &PathBuf, upscaling_parameters: &UpscalingParameters) -> Result<(), &'static str> {
+pub(crate) async fn process_item_resource(resource: PathBuf, read_root: &PathBuf, write_root: &PathBuf, upscaling_parameters: &UpscalingParameters) -> Result<(), &'static str> {
     let source_img = match image::open(read_root.join(&resource)) {
         Ok(i) => RgbaImage::from(i),
         Err(_e) => return Err("Error: Unable to read image into buffer. (item)")
     };
 
-    let mut upscaled_img = match median_upscale(&source_img, &upscaling_parameters) {
+    let mut upscaled_img = match median_upscale(&source_img, &upscaling_parameters).await {
         Ok(i) => i,
         Err(e) => return Err(e)
     };
 
-    upscaled_img = match circular_filter(&source_img, upscaled_img, upscaling_parameters) {
+    upscaled_img = match circular_filter(&source_img, upscaled_img, upscaling_parameters).await {
         Ok(i) => i,
         Err(e) => return Err(e)
     };
 
     let file = write_root.join(&resource);
-    match File::create(&file) {
+    match File::create(&file).await {
         Ok(f) => f,
         Err(_e) => {
             return Err("Error: Failed to create image file.")
