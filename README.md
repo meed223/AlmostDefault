@@ -11,7 +11,7 @@ It runs as a tool, called from the command-line.
 ### Goals / Planned Features:
 * [x] CLI Argument support for pointing to directories, setting the size to upscale to
 * [x] Generate textures similar to the original
-* [ ] Modify code to be async / multi-threaded, to process several textures at once
+* [x] Modify code to be async / multi-threaded, to process several textures at once
 
 ## Acknowledgements
 Thanks again to [Qwertz19281](https://github.com/qwertz19281) for making the original pack and coming up with the script.
