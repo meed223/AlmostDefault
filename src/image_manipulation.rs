@@ -44,6 +44,7 @@ pub(crate) async fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscali
             }
             let mean_colour = get_mean_colour(colours).await;
             filtered_upscaled_img.put_pixel(x as u32, y as u32, mean_colour);
+            //filtered_upscaled_img = put_pixel_preserve_transparency(filtered_upscaled_img, x as u32, y as u32, mean_colour);
         }
     }
 
@@ -65,10 +66,10 @@ pub(crate) async fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscali
         a.push(channels[3]);
     }
 
-    r.sort_unstable();
-    g.sort_unstable();
-    b.sort_unstable();
-    a.sort_unstable();
+    r.sort();
+    g.sort();
+    b.sort();
+    a.sort();
 
     let mean_channels = [r[r.len() / 2], g[g.len() / 2], b[b.len() / 2], a[a.len() / 2]];
 
