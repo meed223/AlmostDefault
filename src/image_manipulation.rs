@@ -51,6 +51,32 @@ pub(crate) async fn median_upscale(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscali
     return Ok(filtered_upscaled_img);
  }
 
+pub(crate) async fn median_upscale_with_corner_pass(img: &ImageBuffer<Rgba<u8>, Vec<u8>>, upscaling_parameters: &UpscalingParameters) -> Result<ImageBuffer<Rgba<u8>, Vec<u8>>, &'static str> {
+    let upscaled_img = pixel_doubling_upscale(img, upscaling_parameters.scale as u32).await;
+    let mut filtered_upscaled_img = upscaled_img.clone();
+    let wb = (upscaling_parameters.median -1) / 2;
+
+    let mut colours: Vec<&Rgba<u8>>;
+
+    for x in wb..(upscaled_img.width() as i32 - wb) {
+        for y in wb..(upscaled_img.height() as i32 - wb) {
+            colours = Vec::new();
+            // Inner loop to get 3x3 pixels around target pixel
+            for i in -wb..=wb {
+                for j in -wb..=wb {
+                    colours.push(upscaled_img.get_pixel((x + i) as u32, (y + j) as u32));
+                }
+            }
+            let mean_colour = get_mean_colour(colours).await;
+            if mean_colour.channels()[3] != 0 {
+                filtered_upscaled_img.put_pixel(x as u32, y as u32, mean_colour);
+            }
+        }
+    }
+
+    return Ok(filtered_upscaled_img);
+ }
+
  pub(crate) async fn get_mean_colour(colours: Vec<&Rgba<u8>>) -> Rgba<u8> {
     let mut r = Vec::new();
     let mut g = Vec::new();

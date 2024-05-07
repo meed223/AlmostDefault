@@ -2,11 +2,12 @@ use std::{collections::HashMap, path::PathBuf};
 use image::{ImageBuffer, Rgba, RgbaImage};
 use tokio::fs::{self, File};
 
-use crate::{image_manipulation::{circular_filter, get_mean_colour, median_upscale}, UpscalingParameters};
+use crate::{image_manipulation::{circular_filter, get_mean_colour, median_upscale, median_upscale_with_corner_pass}, UpscalingParameters};
 
 pub(crate) enum ResourceType {
     NonImage,
     Item,
+    Entity,
     Block,
 }
 
@@ -25,8 +26,10 @@ pub(crate) fn determine_resource_type(resources: &Vec<PathBuf>) -> Result<HashMa
         if filename != "png" || path_as_string.contains("colormap") {
             type_map.insert(r.to_owned(), ResourceType::NonImage);
         } else {
-            if path_as_string.contains("items") || path_as_string.contains("entity"){
+            if path_as_string.contains("items") {
                 type_map.insert(r.to_owned(), ResourceType::Item);
+            } else if path_as_string.contains("entity") {
+                type_map.insert(r.to_owned(), ResourceType::Entity);
             } else {
                 type_map.insert(r.to_owned(), ResourceType::Block);
             }
@@ -117,6 +120,38 @@ pub(crate) async fn process_item_resource(resource: PathBuf, read_root: &PathBuf
     };
 
     let mut upscaled_img = match median_upscale(&source_img, &upscaling_parameters).await {
+        Ok(i) => i,
+        Err(e) => return Err(e)
+    };
+
+    upscaled_img = match circular_filter(&source_img, upscaled_img, upscaling_parameters).await {
+        Ok(i) => i,
+        Err(e) => return Err(e)
+    };
+
+    let file = write_root.join(&resource);
+    match File::create(&file).await {
+        Ok(f) => f,
+        Err(_e) => {
+            return Err("Error: Failed to create image file.")
+        }
+    };
+
+    match upscaled_img.save(&file) {
+        Ok(x) => x,
+        Err(_e) => return Err("Error: Failed to write image contents to file.")
+    };
+
+    return Ok(());
+}
+
+pub(crate) async fn process_entity_resource(resource: PathBuf, read_root: &PathBuf, write_root: &PathBuf, upscaling_parameters: &UpscalingParameters) -> Result<(), &'static str> {
+    let source_img = match image::open(read_root.join(&resource)) {
+        Ok(i) => RgbaImage::from(i),
+        Err(_e) => return Err("Error: Unable to read image into buffer. (item)")
+    };
+
+    let mut upscaled_img = match median_upscale_with_corner_pass(&source_img, &upscaling_parameters).await {
         Ok(i) => i,
         Err(e) => return Err(e)
     };

@@ -3,6 +3,8 @@ use clap::Parser;
 use fs_operations::{create_output_directory_structure, read_source_files};
 use resource_operations::{copy_resource, determine_resource_type, process_block_resource, process_item_resource, ResourceType};
 
+use crate::resource_operations::process_entity_resource;
+
 pub mod fs_operations;
 pub mod resource_operations;
 pub mod image_manipulation;
@@ -61,6 +63,7 @@ async fn main() -> ExitCode {
     let mut copy_tasks = Vec::new();
     let mut block_tasks = Vec::new();
     let mut item_tasks = Vec::new();
+    let mut entity_tasks = Vec::new();
 
     for r in mapped_resources {
        match r.1 {
@@ -72,6 +75,9 @@ async fn main() -> ExitCode {
             },
             ResourceType::Item => {
                 item_tasks.push(process_item_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters))
+            },
+            ResourceType::Entity => {
+                entity_tasks.push(process_entity_resource(r.0, &read_root_path, &write_root_path, &upscaling_parameters))
             }
         };
     }
@@ -98,6 +104,16 @@ async fn main() -> ExitCode {
 
     for i in item_tasks {
         match i.await {
+            Ok(()) => (),
+            Err(msg) => {
+                println!("{0}", msg);
+                //return ExitCode::FAILURE
+            }
+        }
+    }
+
+    for e in entity_tasks {
+        match e.await {
             Ok(()) => (),
             Err(msg) => {
                 println!("{0}", msg);
