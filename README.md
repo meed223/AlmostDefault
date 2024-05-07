@@ -9,10 +9,10 @@ It runs as a tool, called from the command-line.
 * `x` or `scale` - how much to upscale the textures by. Currently only accepts 4, 8 or 16  
 
 ### Goals / Planned Features:
-* [x] CLI Argument support for pointing to directories, setting the size to upscale to
-* [x] Generate textures similar to the original
-* [x] Modify code to be async / multi-threaded, to process several textures at once
-
+* [x] ~~CLI Argument support for pointing to directories, setting the size to upscale to~~
+* [x] ~~Generate textures similar to the original~~
+* [x] ~~Modify code to be async / multi-threaded, to process several textures at once~~
+* [ ] Publish build(s) and/or a how-to for using this
 ## Acknowledgements
 Thanks again to [Qwertz19281](https://github.com/qwertz19281) for making the original pack and coming up with the script.
 * Original NearlyDefault texture pack can be found [here](https://www.curseforge.com/minecraft/texture-packs/nearlydefault), original code is in the description
