@@ -6,7 +6,9 @@ license-file = "LICENSE"
 readme = "README.md"
 
 [dependencies]
+uiua = { version = "*", default-features = false, features = ["batteries"] }
 walkdir = "2"
 image = "0"
-clap = { version = "4", features = ["derive"] }
+clap = "4"
+clio = { version = "0", features = ["clap-parse"]}
 tokio = { version = "1", features = ["full"] }
