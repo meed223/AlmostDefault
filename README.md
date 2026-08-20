@@ -2,7 +2,7 @@
 A tool for upscaling Minecraft textures, making them "less edgy" in the process. Based off the [NearlyDefault](https://www.curseforge.com/minecraft/texture-packs/nearlydefault) texture pack, and the algorithm used to create it, by Qwertz19281.
 
 ## About
-This project is originally a learning project for Rust, but now also for Uiua. The intent is to produce a simple to use CLI tool that runs effectively.
+This project is originally a learning project for Rust, but now also for [Uiua](https://www.uiua.org/). The intent is to produce a simple to use CLI tool that runs effectively.
 
 ### Usage
 * `i` or `input` - a target directory. The program will recurse through anything here, processing any textures it finds.  
