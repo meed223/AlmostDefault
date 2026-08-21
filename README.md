@@ -5,10 +5,10 @@ A tool for upscaling Minecraft textures, making them "less edgy" in the process.
 This project is originally a learning project for Rust, but now also for [Uiua](https://www.uiua.org/). The intent is to produce a simple to use CLI tool that runs effectively.
 
 ### Flags
-* `-i` or `--input` - a target directory. The program will recurse through anything here, processing any textures it finds.  
-* `-o` or `--output` - the directory to place processed textures into. Any folders inside the target folder, should be replicated here  
-* `-x` or `--scale` - how much to upscale the textures by. Currently only accepts 4, 8 or 16.
-* `-n` or `--ignore` - directories or file(s) to ignore.
+* `--input` - a target directory. The program will recurse through anything here, processing any textures it finds.  
+* `--output` - the directory to place processed textures into. Any folders inside the target folder, should be replicated here  
+* `--scale` - how much to upscale the textures by. Currently only accepts 4, 8 or 16.
+* `--ignore` - directories or file(s) to ignore.
 
 ### Goals / Planned Features (2026):
 #### Primary  

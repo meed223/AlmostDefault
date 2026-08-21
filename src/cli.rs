@@ -1,24 +1,24 @@
+use std::path::PathBuf;
 use clap::{Command, arg, value_parser};
-use clio::ClioPath;
 
 pub(crate) fn build_cli() -> Command{
     Command::new("AlmostDefault")
         .about("Upscales Minecraft textures, making them less edgy.")
         .arg(arg!(
-                "Input path": -i --input <PATH> "File path of texture or directory containing texture(s)."
+                "Input path": --input <PATH> "File path of texture or directory containing texture(s)."
             )
             .required(true)
-            .value_parser(value_parser!(ClioPath).exists()),
+            .value_parser(value_parser!(PathBuf)),
         )
         .arg(arg!(
-                "Output path": -o --output <PATH> "Output path to write texture(s). Default: \".\""
+                "Output path": --output <PATH> "Output path to write texture(s). Default: \".\""
             )
             .required(false)
-            .value_parser(value_parser!(ClioPath).exists().is_dir())
+            .value_parser(value_parser!(PathBuf))
             .default_value("."),
         )
         .arg(arg!(
-                "Upscaling multiplier": -x --scale <VALUE> "The upscaling multiplier. Accepted values: 4, 8 or 16. Default: 4"
+                "Upscaling multiplier": --scale <VALUE> "The upscaling multiplier. Accepted values: 4, 8 or 16. Default: 4"
             )
             .required(false)
             .value_parser(clap::builder::PossibleValuesParser::new(
@@ -27,9 +27,9 @@ pub(crate) fn build_cli() -> Command{
             .default_value("4"),
         )
         .arg(arg!(
-                "Ignore paths": -n --ignore <VALUE> "Directories or file(s) to ignore"
+                "Ignore paths": --ignore <VALUE> "Directories or file(s) to ignore"
             )
             .required(false)
-            .value_parser(value_parser!(ClioPath).exists()),
+            .value_parser(value_parser!(PathBuf)),
         )
 }
