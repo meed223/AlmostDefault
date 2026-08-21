@@ -10,5 +10,4 @@ uiua = { version = "*", default-features = false, features = ["batteries"] }
 walkdir = "2"
 image = "0"
 clap = "4"
-clio = { version = "0", features = ["clap-parse"]}
 tokio = { version = "1", features = ["full"] }
