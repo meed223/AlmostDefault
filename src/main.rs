@@ -1,12 +1,11 @@
 use std::{path::PathBuf, process::ExitCode};
-use clap::{ArgMatches, parser::{MatchesError, ValuesRef}};
+use clap::{ArgMatches, parser::{MatchesError}};
 
-pub mod cli;
-pub mod filesystem_operations;
+use almostdefault::{cli::build_cli, *};
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    let arg_matches = cli::build_cli().get_matches();
+    let arg_matches = build_cli().get_matches();
 
     let mut context: Context = Context { 
         source_path: PathBuf::new(), 
@@ -19,17 +18,17 @@ async fn main() -> ExitCode {
         Ok(args_context) => context = args_context,
         Err(error) => {
             println!("{0}", error.to_string());
-            ExitCode::FAILURE;
+            return ExitCode::FAILURE;
         }
     };
     
     if context.source_path.is_file() {
-        await filesystem_operations::process_file(&context.source_path, &context);
+        process_file(&context.source_path, &context).await;
     } else {
-
+        process_directory(&context.source_path, &context).await;
     }
 
-    ExitCode::SUCCESS
+    return ExitCode::SUCCESS
 }
 
 fn create_context_from_args(matches: &ArgMatches) -> Result<Context, MatchesError> {
@@ -59,9 +58,3 @@ fn create_context_from_args(matches: &ArgMatches) -> Result<Context, MatchesErro
 }
 
 
-struct Context {
-    source_path: PathBuf,
-    output_path: PathBuf,
-    scale: i32,
-    ignore_paths: Vec<PathBuf>
-}

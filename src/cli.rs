@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use clap::{Command, arg, value_parser};
 
-pub(crate) fn build_cli() -> Command{
+pub fn build_cli() -> Command{
     Command::new("AlmostDefault")
         .about("Upscales Minecraft textures, making them less edgy.")
         .arg(arg!(
